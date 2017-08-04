@@ -57,10 +57,10 @@ def rollwindow(x, window):
 	return np.lib.stride_tricks.as_strided(x, shape=shape, strides=strides)
 
 def rolmean(hrdata, hrw, fs):
-	avg_hr = (np.mean(hrdata)) 
+	avg_hr = (np.mean(hrdata))
 	hrarr = np.array(hrdata)
 	rol_mean = np.mean(rollwindow(hrarr, int(hrw*fs)), axis=1)
-	ln = np.array([avg_hr for i in range(0,abs(len(hrarr)-len(rol_mean))/2)])
+	ln = np.array([avg_hr for i in range(0,int(abs(len(hrarr)-len(rol_mean))/2))])
 	rol_mean = np.insert(rol_mean, 0, ln)
 	rol_mean = np.append(rol_mean, ln)
 	rol_mean = rol_mean * 1.1
@@ -75,7 +75,7 @@ def butter_lowpass(cutoff, fs, order=5):
 def butter_lowpass_filter(hrdata, cutoff, fs, order):
 	b, a = butter_lowpass(cutoff, fs, order=order)
 	y = lfilter(b, a, hrdata)
-	return y    
+	return y
 
 def filtersignal(hrdata, cutoff, fs, order):
 	hr = np.power(np.array(hrdata), 3)
@@ -98,7 +98,7 @@ def detect_peaks(hrdata, rol_mean, ma_perc, fs):
 			peaklist.append(peaksx[peakedges[i] + y.index(max(y))])
 		except:
 			pass
-	
+
 	working_data['peaklist'] = peaklist
 	working_data['ybeat'] = [hrdata[x] for x in peaklist]
 	working_data['rolmean'] = rolmean
@@ -120,7 +120,7 @@ def fit_peaks(hrdata, rol_mean, fs):
 	for x,y,z in rrsd:
 		if ((x > 1) and ((y > 40) and (y < 150))):
 			valid_ma.append([x, z])
-	
+
 	working_data['best'] = min(valid_ma, key = lambda t: t[0])[1]
 	detect_peaks(hrdata, rol_mean, min(valid_ma, key = lambda t: t[0])[1], fs)
 
@@ -146,7 +146,7 @@ def calc_RR(fs):
 	working_data['RR_list'] = RR_list
 	working_data['RR_diff'] = RR_diff
 	working_data['RR_sqdiff'] = RR_sqdiff
-	
+
 def calc_ts_measures():
 	RR_list = working_data['RR_list_cor']
 	RR_diff = working_data['RR_diff']
@@ -173,9 +173,9 @@ def calc_fd_measures(hrdata, fs):
 	f = interp1d(RR_x, RR_y, kind='cubic')
 	n = len(hrdata)
 	frq = np.fft.fftfreq(len(hrdata), d=((1/fs)))
-	frq = frq[range(n/2)]
+	frq = frq[range(int(n/2))]
 	Y = np.fft.fft(f(RR_x_new))/n
-	Y = Y[range(n/2)]
+	Y = Y[range(int(n/2))]
 	measures['lf'] = np.trapz(abs(Y[(frq>=0.04) & (frq<=0.15)]))
 	measures['hf'] = np.trapz(abs(Y[(frq>=0.16) & (frq<=0.5)]))
 	measures['lf/hf'] = measures['lf'] / measures['hf']
@@ -190,9 +190,9 @@ def plotter(show=True, title='Heart Rate Signal Peak Detection'):
 	plt.plot(working_data['hr'], alpha=0.5, color='blue', label='heart rate signal')
 	plt.scatter(peaklist, ybeat, color='green', label='BPM:%.2f' %(measures['bpm']))
 	plt.scatter(rejectedpeaks, rejectedpeaks_y, color='red', label='rejected peaks')
-	plt.legend(loc=4, framealpha=0.6) 
+	plt.legend(loc=4, framealpha=0.6)
 	if show == True:
-		plt.show() 
+		plt.show()
 	else:
 		return plt
 
